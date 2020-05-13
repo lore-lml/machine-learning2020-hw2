@@ -1,4 +1,5 @@
 from torchvision.datasets import VisionDataset
+from sklearn.model_selection import train_test_split
 
 from PIL import Image
 
@@ -14,7 +15,6 @@ def pil_loader(path):
         img = Image.open(f)
         return img.convert('RGB')
 
-
 def random_split_indices(dataset, train_size=.5):
     validation_size = int(dataset.__len__() * (1-train_size))
     train_indices = list(range(dataset.__len__()))
@@ -24,7 +24,6 @@ def random_split_indices(dataset, train_size=.5):
         validation_indices.append(train_indices.pop(ind))
 
     return train_indices, validation_indices
-
 
 class Caltech(VisionDataset):
     def __init__(self, root, split='train', transform=None, target_transform=None):
@@ -89,3 +88,6 @@ class Caltech(VisionDataset):
 
     def get_labels(self):
         return np.array(self.labels_int)
+
+    def get_train_val_idxs(self, train_size=.5):
+        return train_test_split(np.arange(self.__len__()), train_size=train_size, stratify=self.labels_int)
