@@ -35,6 +35,8 @@ class CaltechSubset(Dataset):
 
         return img, label
 
+    def get_labels(self):
+        return self.labels
 
 
 class Caltech(VisionDataset):
@@ -42,8 +44,8 @@ class Caltech(VisionDataset):
         super(Caltech, self).__init__(root, transform=transform)
 
         self.root = root
-        self.split = src # This defines the src you are going to use
-                           # (src files are called 'train.txt' and 'test.txt')
+        self.split = src  # This defines the src you are going to use
+        # (src files are called 'train.txt' and 'test.txt')
         self.transform = transform
         self.eval_transform = eval_transform
 
@@ -65,10 +67,10 @@ class Caltech(VisionDataset):
                 if not line.startswith("BACKGROUND_Google"):
                     classes.append(line.split("/")[0])
                     image_path = os.path.join(self.root, line[:-1])
-                    self.images.append(pil_loader(image_path))
+                    images.append(pil_loader(image_path))
 
-        self.class_names = {k: i for i, k in enumerate(sorted(set(self.labels)))}
-        labels_int = [self.class_names[v] for v in self.labels]
+        self.class_names = {k: i for i, k in enumerate(sorted(set(classes)))}
+        labels_int = [self.class_names[v] for v in classes]
 
         self.df = pd.DataFrame({
             'image': pd.Series(list(images)),
@@ -107,7 +109,8 @@ class Caltech(VisionDataset):
         return np.array(self.df.loc[:, 'label'])
 
     def get_train_validation_set(self, train_size=.5):
-        train_idx, val_idx = train_test_split(np.arange(self.__len__()), train_size=train_size, stratify=self.df.loc[:, 'label'])
+        train_idx, val_idx = train_test_split(np.arange(self.__len__()), train_size=train_size,
+                                              stratify=self.df.loc[:, 'label'])
         train_subset = CaltechSubset(self.df.loc[train_idx, 'image'], self.df.loc[train_idx, 'label'], self.transform)
         val_subset = CaltechSubset(self.df.loc[val_idx, 'image'], self.df.loc[val_idx, 'label'], self.eval_transform)
         return train_subset, val_subset
